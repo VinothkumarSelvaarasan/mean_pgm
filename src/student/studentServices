@@ -1,0 +1,64 @@
+var studentModel=require('./studentModel');
+var key = '1234828282vinothiisn&lnt';
+var encryptor = require('simple-encryptor')(key);
+
+var createStudentSerivces=(studetDetails)=>{
+    return new Promise(function myFn(resolve,reject){
+    
+    var studentModelData=new studentModel();
+
+    studentModelData.firstname=studetDetails.firstname;
+    studentModelData.lastname=studetDetails.lastname;
+    studentModelData.email=studetDetails.email;
+    studentModelData.password=studetDetails.password;
+
+    var encrypted=encryptor.encrypt(studetDetails.password);
+    studentModelData.password=encrypted;
+
+    // var decrypted = encryptor.decrypt(encrypted);
+    // console.log(decrypted);
+
+    studentModelData.save(function resultHandle(error,result){
+        if(error)
+        {
+            reject(false);
+        }
+        else
+        {
+            resolve(true);
+        }
+    });
+
+    });
+}
+
+var loginStudentSerivces=(studetDetails)=>{
+    return new Promise(function myFn(resolve,reject){
+        studentModel.findOne({email:studetDetails.email},
+            function getResult(errorValue,result)
+        {
+            if(errorValue)
+            {
+                reject({status: false , msg: "Invalid Data"});
+            }
+            else{
+                if(result !=undefined && result!= null)
+                {
+                        var decrypted=encryptor.decrypt(result.password);
+                        if(decrypted==studetDetails.password)
+                        {
+                            resolve({status: true, msg: "Student Validated Successfully"});
+                        }
+                        else{
+                            reject({status: false, msg: "Student Validated Failed"});
+                        }
+                }
+                else{
+                    reject({status: false, msg: "Student Error Details"});
+                }
+            }
+        });
+});
+}
+
+module.exports={ createStudentSerivces,loginStudentSerivces };
